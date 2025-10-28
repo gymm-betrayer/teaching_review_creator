@@ -1,0 +1,24 @@
+[project]
+name = "teach_competing"
+version = "0.1.0"
+description = "teach_competing using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "crewai[tools]>=0.203.0,<1.0.0",
+    "qdrant-client>=1.15.1",
+]
+
+[project.scripts]
+teach_competing = "teach_competing.main:run"
+run_crew = "teach_competing.main:run"
+train = "teach_competing.main:train"
+replay = "teach_competing.main:replay"
+test = "teach_competing.main:test"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 教师文章生成器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        input[type="text"] { width: 70%; padding: 10px; font-size: 16px; }
+        button { padding: 10px 20px; font-size: 16px; margin-left: 10px; }
+        #result { margin-top: 30px; padding: 15px; border-radius: 8px; }
+        .processing { background-color: #fff3cd; border: 1px solid #ffeaa7; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .failed { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>🤖 AI 教师文章生成器</h1>
+    <p>输入一个主题，AI 将为你生成一篇专业文章。</p>
+
+    <div>
+        <input type="text" id="topic" placeholder="例如：大模型在教育中的应用" />
+        <button onclick="generateArticle()">生成文章</button>
+    </div>
+
+    <div id="result" style="display:none;"></div>
+
+    <script>
+        async function generateArticle() {
+            const topic = document.getElementById("topic").value.trim();
+            if (!topic) {
+                alert("请输入主题！");
+                return;
+            }
+
+            const resultDiv = document.getElementById("result");
+            resultDiv.style.display = "block";
+            resultDiv.className = "processing";
+            resultDiv.innerHTML = "正在生成中，请稍候...";
+
+            try {
+                // 1. 发起生成请求
+                const resp = await fetch("/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ topic: topic })
+                });
+
+                if (!resp.ok) throw new Error("请求失败");
+
+                const data = await resp.json();
+                const articleId = data.id;
+
+                // 2. 轮询查询结果（每2秒一次）
+                const poll = async () => {
+                    const res = await fetch(`/article/${articleId}`);
+                    const article = await res.json();
+
+                    if (article.status === "success") {
+                        resultDiv.className = "success";
+                        resultDiv.innerHTML = `
+                            <h3>✅ 生成成功！</h3>
+                            <p><strong>主题：</strong>${article.topic}</p>
+                            <h4>文章内容：</h4>
+                            <pre>${article.content}</pre>
+                            ${article.pdf_path ? `<p><a href="/${article.pdf_path}" target="_blank">📥 下载 PDF</a></p>` : ''}
+                        `;
+                    } else if (article.status === "failed") {
+                        resultDiv.className = "failed";
+                        resultDiv.innerHTML = "❌ 生成失败，请重试。";
+                    } else {
+                        // 继续轮询
+                        setTimeout(poll, 2000);
+                    }
+                };
+
+                poll(); // 开始轮询
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById("result").className = "failed";
+                document.getElementById("result").innerHTML = "❌ 请求出错：" + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

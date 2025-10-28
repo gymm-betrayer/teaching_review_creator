@@ -1,0 +1,29 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+env/
+
+# Chroma DB (vector database)
+chroma_db/
+
+# Dependency lock files (optional, but often excluded)
+uv.lock
+poetry.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# SQLite DB (if you use it locally)
+*.db
